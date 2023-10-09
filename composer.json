@@ -1,0 +1,16 @@
+{
+    "name": "pablopereyra/bienes-raices-poo_php_inicio",
+    "description": "Creando proyecto con POO",
+    "authors": [
+        {
+            "name": "Pablo Pereyra",
+            "email": "114635259+Pablopereyradev@users.noreply.github.com"
+        }
+    ],
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "App\\" : "./classes"
+        }
+    }
+}
