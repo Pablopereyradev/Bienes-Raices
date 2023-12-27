@@ -1,7 +1,5 @@
 <?php
-
 include '../../includes/app.php';
-
 use App\Propiedad;
 
 // Proteger esta ruta.
@@ -13,7 +11,6 @@ $consulta = "SELECT * FROM vendedores";
 $resultado = mysqli_query($db, $consulta);
 
 // Validar 
-
 $errores = [];
 
 $titulo = '';
@@ -29,9 +26,7 @@ $vendedor = null;
 // echo "</pre>";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-
     $propiedad = new Propiedad($_POST);
-
     $propiedad->guardar() ;
 
     $titulo = $_POST['titulo'];
@@ -43,16 +38,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $vendedores_id = $_POST['vendedores_id'];
     $creado = date('Y/m/d');
 
-
-
     // filter var va a filtrar una variable
     // FILTER_VALIDATE_INT
     // FILTER_SANITIZE_INT
 
-    // 
-
     $numero = "HOLA1";
-
+    
     // Sanitizar va a hacer eso, limpiar los datos 
     $estacionamiento = filter_var($numero, FILTER_SANITIZE_NUMBER_INT);
 
@@ -61,16 +52,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
     // Existe otra opción llamada mysqli_real_escape_string, esta función va a eliminar los caracteres especiales o escaparlos para hacerlos compatibles con la base de datos.
-
     $titulo = mysqli_real_escape_string( $db, $_POST['titulo'] );
 
     // Todo esto de escapar datos y asegurarlos se puede evitar con Sentencias preparadas y PDO
-
     exit;
 
-
     $imagen = $_FILES['imagen'] ?? null;
-
 
     if (!$titulo) {
         $errores[] = 'Debes añadir un Titulo';
@@ -107,51 +94,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errores[] = 'La Imagen es muy grande';
     }
 
-
-
-
-    // echo "<pre>";
-    // var_dump($errores);
-    // echo "</pre>";
-
     // El array de errores esta vacio
     if (empty($errores)) {
         //Subir la imagen
-
         $carpetaImagenes = '../../imagenes/';
         $rutaImagen = '';
         if (!is_dir($carpetaImagenes)) {
             mkdir($carpetaImagenes);
         }
 
-
-
         if ($imagen) {
             $imagePath = $carpetaImagenes . md5(uniqid(rand(), true)) . '/' . $imagen['name'];
 
             // var_dump($imagePath);
-
             mkdir(dirname($imagePath));
 
             // var_dump($imagen);
-
             move_uploaded_file($imagen['tmp_name'], $imagePath);
 
             $rutaImagen = str_replace($carpetaImagenes, '', $imagePath);
-
             // var_dump($rutaImagen);
         }
 
-
-
-
-        // Insertar en la BD.
-        // echo "No hay errores";
-
-    
-
         echo $query;
-
         $resultado = mysqli_query($db, $query) or die(mysqli_error($db));
         // var_dump($resultado);
         // printf("Nuevo registro con el id %d.\n", mysqli_insert_id($db));
@@ -161,14 +126,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    // Insertar en la BD.
-
-
 }
-
-
-
-
 
 ?>
 
@@ -204,9 +162,7 @@ incluirTemplate('header');
 
             <label for="descripcion">Descripción:</label>
             <textarea name="descripcion" id="descripcion"><?php echo $descripcion; ?></textarea>
-
         </fieldset>
-
 
         <fieldset>
             <legend>Información Propiedad</legend>
@@ -237,11 +193,8 @@ incluirTemplate('header');
 
 </main>
 
-
 <?php
 
 incluirTemplate('footer');
-
 mysqli_close($db); ?>
-
 </html>

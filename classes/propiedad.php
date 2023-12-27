@@ -6,6 +6,7 @@ class Propiedad {
 
     // Base de datos
     protected static $db;
+    protected static $columnas_DB = ['id', 'titulo', 'precio','imagen', 'descripcion', 'habitaciones', 'wc', 'estacionamiento', 'creado', 'vendedores_id'];
 
     public $id;
     public $titulo;
@@ -18,23 +19,37 @@ class Propiedad {
     public $creado;
     public $vendedores_id;
 
-    public function __construct($arg = [])
+    // Definir la conexion a la base de datos
+    public static function setDB($database) {
+        self::$db = $database;
+    }
+
+    public function __construct($args = [])
     {
-        $this-> id = $arg['id'] ?? '';
-        $this-> titulo = $arg['titulo'] ?? '';
-        $this-> precio = $arg['precio'] ?? '';
-        $this-> imagen = $arg['imagen'] ?? '';
-        $this-> descripcion = $arg['descripcion'] ?? '';
-        $this-> habitaciones = $arg['habitaciones'] ?? '';
-        $this-> wc = $arg['wc'] ?? '';
-        $this-> estacionamiento = $arg['estacionamiento'] ?? '';
+        $this-> id = $args['id'] ?? '';
+        $this-> titulo = $args['titulo'] ?? '';
+        $this-> precio = $args['precio'] ?? '';
+        $this-> imagen = $args['imagen'] ?? '';
+        $this-> descripcion = $args['descripcion'] ?? '';
+        $this-> habitaciones = $args['habitaciones'] ?? '';
+        $this-> wc = $args['wc'] ?? '';
+        $this-> estacionamiento = $args['estacionamiento'] ?? '';
         $this-> creado = date('Y/m/d');
-        $this-> vendedores_id = $arg['vendedores_id'] ?? '';
+        $this-> vendedores_id = $args['vendedores_id'] ?? '';
     }
 
     public function guardar() {
 
-        $query = "INSERT INTO propiedades (titulo, precio, imagen, descripcion, habitaciones, wc, estacionamiento, vendedores_id, creado  ) VALUES ( '$this->titulo', '$this->precio', '$this->imagen', '$this->descripcion',  '$this->habitaciones', '$this->wc', '$this->estacionamiento', '$this->vendedores_id', '$this->creado' )";
+        // Sanitizar los datos
+        $atributos = $this->sanitizarAtributos();
+
+        // Insertar en l base de datos
+        $query = "INSERT INTO propiedades (";
+        $query .= join(", ", array_keys($atributos));
+        $query .= ") VALUES (' ";
+        $query .= join("', '", array_values($atributos));
+        $query .= " ') ";
+
 
         $resultado = self::$db->query($query);
 
@@ -42,8 +57,24 @@ class Propiedad {
 
     }
 
-    // Definir la conexion a la base de datos
-    public static function setDB($database) {
-        self::$db = $database;
+    public function atributos() {
+        $atributos = [];
+        foreach(self::$columnas_DB as $columna) {
+            if($columna === 'id') continue;
+            $atributos[$columna] = $this->$columna;
+        }
+        return $atributos;
     }
+
+    public function sanitizarAtributos() {
+        $atributos = $this->atributos();
+        $sanitizado = [];
+        foreach($atributos as $key => $value) {
+            $sanitizado[$key] = self::$db->escape_string($value);
+        }
+
+        return $sanitizado;
+    }
+
+    
 }
