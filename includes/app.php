@@ -7,8 +7,8 @@ require __DIR__ . '/../vendor/autoload.php';
 // Conectar a la base de datos
 $db = conectarDb();
 
-use App\Propiedad;
+use App\ActiveRecord;
 
-$propiedad = new Propiedad;
+//$propiedad = new Propiedad;
 
-Propiedad::setDB($db);
+ActiveRecord::setDB($db);

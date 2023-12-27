@@ -1,69 +1,68 @@
 <?php
-include '../includes/app.php';
-// Proteger esta ruta.
+    include '../includes/App.php';
 
-$auth = estaAutenticado();
-if(!$auth) {
-    header('Location: /');
-}
+    // Proteger esta ruta
+    estaAutenticado();
 
+    // Importar clases
+    use App\Propiedad;
+    use App\Vendedor;
 
-$db = conectarDb();
+    // Implementar un metodo para obtener todas las propiedades
+    $propiedades = Propiedad::all();
+    $vendedores = Vendedor::all();
 
-$query = "SELECT * FROM propiedades";
-$resultado = mysqli_query($db, $query);
-
-
-// Validar la URL 
-$mensaje = $_GET['mensaje'] ?? null;
+    // Muestra mensaje condicional
+    $resultado = $_GET['resultado'] ?? null;
 
 
-// Importar el Template
 
-incluirTemplate('header');
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        // Validar ID
+        $id = $_POST['id'];
+        $id = filter_var($id, FILTER_VALIDATE_INT);
 
-    echo "<pre>";
-    var_dump($_POST);
-    echo "</pre>";
+        if ($id) {
+            $tipo = $_POST['tipo'];
+            if(validarTipoContenido($tipo)) {
+                // Compara lo que vamos a eliminar
+                if($tipo === 'vendedor') {
+                    // Obtener la propiedad
+                    $vendedor = Vendedor::find($id);
+                    // Eliminar propiedad
+                    $vendedor->eliminar();
+                } else if($tipo === 'propiedad') {
+                    // Obtener la propiedad
+                    $propiedad = Propiedad::find($id);
+                    // Eliminar propiedad
+                    $propiedad->eliminar();
+                }
+            }
 
-    // Sanitizar número entero
-    $id = $_POST['id_eliminar'];
-    $id = filter_var($id, FILTER_SANITIZE_NUMBER_INT);
-
-    // Eliminar... 
-
-    $query = "DELETE FROM propiedades WHERE id = '${id}'";
-
-    // echo $query;
-
-    $resultado = mysqli_query($db, $query) or die(mysqli_error($db));
-    // var_dump($resultado);
-    // printf("Nuevo registro con el id %d.\n", mysqli_insert_id($db));
-
-    if ($resultado) {
-        header('location: /admin');
+            // Sanitizar número entero
+            $id = $_POST['id'];
+            $id = filter_var($id, FILTER_SANITIZE_NUMBER_INT);
+        }
     }
 
-}
+    // Importar el Template
+    incluirTemplate('header');
 ?>
 
-<h1 class="fw-300 centrar-texto">Administración</h1>
-
 <main class="contenedor seccion contenido-centrado">
-
+    <h1 class="fw-300 centrar-texto">Administrador de Bienes Raices</h1>
 
     <?php
-        if ($mensaje == 1) {
-            echo '<p class="alerta exito">Anuncio Creado Correctamente</p>';
-        } else if ($mensaje == 2) {
-        echo '<p class="alerta exito">Anuncio Actualizado Correctamente</p>';
-        }
-    ?>
+        $mensaje = mostrarNotificacion( intval($resultado) );
+        if($mensaje) { ?>
+        <p class="alerta exito"><?php echo s($mensaje) ?> </p>
+    <?php } ?>
 
     <a href="/admin/propiedades/crear.php" class="boton boton-verde">Nueva Propiedad</a>
+    <a href="/admin/vendedores/crear.php" class="boton boton-amarillo">Nuevo Vendedor</a>
 
+    <h2>Propiedades</h2>
 
     <table class="propiedades">
         <thead>
@@ -77,29 +76,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </thead>
 
         <tbody>
-            <?php while( $propiedad = mysqli_fetch_assoc($resultado) ): ?>
-            <tr>
-                <td><?php echo $propiedad['id']; ?></td>
-                <td><?php echo $propiedad['titulo']; ?></td>
-                <td>
-                    <img src="/imagenes/<?php echo $propiedad['imagen']; ?>"" width="100" class="imagen-tabla">
-                </td>
-                <td>$ <?php echo $propiedad['precio']; ?></td>
-                <td>
-                <form method="POST">
-                    <input type="hidden" name="id_eliminar" value="<?php echo $propiedad['id']; ?>">
-                    <input type="submit" href="/admin/propiedades/borrar.php" class="boton boton-rojo" value="Borrar">
-                </form>
-                    
-                    <a href="/admin/propiedades/actualizar.php?id=<?php echo $propiedad['id']; ?>" class="boton boton-verde">Actualizar</a>
-                </td>
-            </tr>
+            <?php foreach ( $propiedades as $propiedad ) : ?>
+                <tr>
+                    <td><?php echo $propiedad->id; ?></td>
+                    <td><?php echo $propiedad->titulo; ?></td>
+                    <td>
+                        <img src="/imagenes/<?php echo $propiedad->imagen; ?>"" width=" 100" class="imagen-tabla">
+                    </td>
+                    <td>$ <?php echo $propiedad->precio; ?></td>
+                    <td>
+                        <form method="POST">
+                            <input type="hidden" name="id" value="<?php echo $propiedad->id; ?>">
+                            <input type="hidden" name="tipo" value="propiedad">
+                            <input type="submit" class="boton boton-rojo" value="Eliminar">
+                        </form>
 
-            <?php endwhile; ?>
+                        <a href="/admin/propiedades/actualizar.php?id=<?php echo $propiedad->id; ?>" class="boton boton-amarillo">Actualizar</a>
+                    </td>
+                </tr>
+
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+
+    <h2>Vendedores</h2>
+
+    <table class="propiedades">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Telefono</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            <?php foreach ( $vendedores as $vendedor ) : ?>
+                <tr>
+                    <td><?php echo $vendedor->id; ?></td>
+                    <td><?php echo $vendedor->nombre . " " . $vendedor->apellido; ?></td>
+                    <td><?php echo $vendedor->telefono; ?></td>
+                    <td>
+                        <form method="POST" class="w-100">
+                            <input type="hidden" name="id" value="<?php echo $vendedor->id; ?>">
+                            <input type="hidden" name="tipo" value="vendedor">
+                            <input type="submit" class="boton boton-rojo " value="Eliminar">
+                        </form>
+
+                        <a href="/admin/vendedores/actualizar.php?id=<?php echo $vendedor->id; ?>" class="boton boton-amarillo">Actualizar</a>
+                    </td>
+                </tr>
+
+            <?php endforeach; ?>
         </tbody>
     </table>
 </main>
 
-<?php 
-    incluirTemplate('footer');
+<?php
+incluirTemplate('footer');
 ?>

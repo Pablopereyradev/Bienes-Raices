@@ -42,7 +42,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if($auth) {
                 // Autenticado.
-
+                header('location: /admin/index.php');
                 // Para autenticar usuarios estaremos utilizando la superglobal SESSION, esta va a mantener eso una sesión activa en caso de que sea valida.
 
                 session_start();
